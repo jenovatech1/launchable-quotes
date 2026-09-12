@@ -5,4 +5,11 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE || '/',
+  preview: {
+    // Allow Cloudflare quick tunnels / reverse proxies during demos
+    allowedHosts: true,
+  },
+  server: {
+    allowedHosts: true,
+  },
 })
