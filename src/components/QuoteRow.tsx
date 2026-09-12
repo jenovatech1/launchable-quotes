@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { logoSrc } from '../api/stonkfun'
 import type { QuotePair } from '../types/pairs'
 
@@ -13,6 +14,25 @@ function shortMint(mint: string): string {
 
 export function QuoteRow({ pair, index }: Props) {
   const src = logoSrc(pair.logoUrl)
+  const [copied, setCopied] = useState(false)
+  const copiedTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimer.current != null) window.clearTimeout(copiedTimer.current)
+    }
+  }, [])
+
+  async function copyMint() {
+    try {
+      await navigator.clipboard.writeText(pair.mint)
+      setCopied(true)
+      if (copiedTimer.current != null) window.clearTimeout(copiedTimer.current)
+      copiedTimer.current = window.setTimeout(() => setCopied(false), 1500)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   return (
     <article className="quote-row" style={{ animationDelay: `${Math.min(index, 24) * 18}ms` }}>
@@ -52,11 +72,11 @@ export function QuoteRow({ pair, index }: Props) {
         <code title={pair.mint}>{shortMint(pair.mint)}</code>
         <button
           type="button"
-          className="copy-btn"
-          onClick={() => void navigator.clipboard?.writeText(pair.mint)}
-          aria-label={`Copy mint for ${pair.symbol}`}
+          className={copied ? 'copy-btn copied' : 'copy-btn'}
+          onClick={() => void copyMint()}
+          aria-label={copied ? `Copied mint for ${pair.symbol}` : `Copy mint for ${pair.symbol}`}
         >
-          copy
+          {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
     </article>

@@ -493,21 +493,33 @@ select {
 
 .copy-btn {
   margin-left: auto;
+  flex: none;
+  min-width: 4.5rem;
+  min-height: 44px;
+  padding: 0 0.85rem;
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink-soft);
-  border-radius: 6px;
-  padding: 0.2rem 0.45rem;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  touch-action: manipulation;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
 }
 
 .copy-btn:hover {
   color: var(--accent-ink);
   border-color: rgba(11, 110, 79, 0.35);
   background: rgba(31, 169, 122, 0.08);
+}
+
+.copy-btn.copied {
+  color: var(--accent-ink);
+  border-color: rgba(11, 110, 79, 0.4);
+  background: rgba(31, 169, 122, 0.16);
 }
 
 .skeleton-list {
