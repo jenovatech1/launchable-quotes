@@ -131,7 +131,7 @@ export function geckoTerminalPoolUrl(pairAddress: string): string {
   return `https://www.geckoterminal.com/solana/pools/${pairAddress}`
 }
 
-export function geckoTerminalEmbedUrl(pairAddress: string): string {
+export function geckoTerminalEmbedUrl(pairAddress: string, tokenMint?: string | null): string {
   const params = new URLSearchParams({
     embed: '1',
     info: '0',
@@ -140,6 +140,7 @@ export function geckoTerminalEmbedUrl(pairAddress: string): string {
     chart_type: 'price',
     resolution: '15m',
   })
+  if (tokenMint) params.set('token_address', tokenMint)
   return `${geckoTerminalPoolUrl(pairAddress)}?${params.toString()}`
 }
 
@@ -196,7 +197,7 @@ export async function resolveChartTarget(
       if (best?.pairAddress) {
         return {
           pairAddress: best.pairAddress,
-          embedUrl: geckoTerminalEmbedUrl(best.pairAddress),
+          embedUrl: geckoTerminalEmbedUrl(best.pairAddress, mint),
           externalUrl: best.url || dexScreenerUrl(best.pairAddress),
           provider: 'geckoterminal',
           priceChange24h: best.priceChange?.h24 ?? null,
@@ -231,7 +232,7 @@ export async function resolveChartTarget(
 
     return {
       pairAddress,
-      embedUrl: geckoTerminalEmbedUrl(pairAddress),
+      embedUrl: geckoTerminalEmbedUrl(pairAddress, mint),
       externalUrl: geckoTerminalPoolUrl(pairAddress),
       provider: 'geckoterminal',
     }
