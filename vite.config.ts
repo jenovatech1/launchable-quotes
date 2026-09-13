@@ -8,9 +8,8 @@ function spaFallback404(): Plugin {
   return {
     name: 'spa-fallback-404',
     closeBundle() {
-      const index = resolve(__dirname, 'dist/index.html')
-      const fallback = resolve(__dirname, 'dist/404.html')
-      copyFileSync(index, fallback)
+      const outDir = resolve(import.meta.dirname, 'dist')
+      copyFileSync(resolve(outDir, 'index.html'), resolve(outDir, '404.html'))
     },
   }
 }
