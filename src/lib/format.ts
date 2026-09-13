@@ -14,6 +14,21 @@ export function formatUsd(value: number | null | undefined): string {
   return `${sign}$${abs.toPrecision(2)}`
 }
 
+export function formatPriceUsd(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return '—'
+  const abs = Math.abs(value)
+  if (abs >= 1) return formatUsd(value)
+  if (abs >= 0.01) return `$${abs.toFixed(4)}`
+  if (abs >= 0.0001) return `$${abs.toFixed(6)}`
+  return `$${abs.toPrecision(3)}`
+}
+
+export function formatPercent(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return '—'
+  const sign = value > 0 ? '+' : ''
+  return `${sign}${value.toFixed(2)}%`
+}
+
 export function formatRelativeTime(iso: string | null | undefined, now = Date.now()): string {
   if (!iso) return '—'
   const then = Date.parse(iso)

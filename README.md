@@ -4,6 +4,7 @@ Free tools for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenov
 
 1. **Launchable Quotes** (`/`) — live launchable quote pairs from the public API, and a callout for the UI↔API mismatch (launch screen can claim no xStocks while the API already returns them).
 2. **Graduated Tokens** (`/graduated`) — just-graduated list sorted by `graduatedAt` (newest first), with quote/pair filters and pagination. StonkFun’s native UI has Newest/mcap/volume but no Graduated tab.
+3. **Token Detail** (`/token/:mint`) — name, mint, quote badge, market stats, links, and a free GeckoTerminal price chart (pair resolved via DexScreener / pool fallback).
 
 ## Features (MVP)
 
@@ -11,6 +12,7 @@ Free tools for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenov
 - Live fetch from StonkFun public API (no API key)
 - Launchable list: symbol, name, mint, category, launchable / lab-ready / ambiguous badges
 - Graduated list: token info, quote badge, mcap/vol, graduated time, StonkFun / Dex / Raydium links
+- Row click opens token detail with chart (Graduated + Launchable)
 - Search and category/quote filters; graduated page paginates (does not dump 1800+ rows)
 - Clear empty/error states — never invents fake data
 - No auth, wallet, websockets, sniper, alerts, history, or portfolio
@@ -21,10 +23,12 @@ Free tools for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenov
 |------|------|
 | `/` | Launchable Quotes Live |
 | `/graduated` | Just graduated tokens |
+| `/token/:mint` | Token detail + price chart |
 
-On GitHub Pages the app is served under `/launchable-quotes/`, so the live graduated URL is:
+On GitHub Pages the app is served under `/launchable-quotes/`, so live URLs look like:
 
-`https://jenovatech1.github.io/launchable-quotes/graduated`
+- `https://jenovatech1.github.io/launchable-quotes/graduated`
+- `https://jenovatech1.github.io/launchable-quotes/token/<mint>`
 
 ## Local development
 
@@ -88,6 +92,7 @@ Base: `https://www.stonkfun.xyz/api/public/v1` (prefer **www** — bare host can
 2. Push to `main` (workflow: `.github/workflows/deploy-pages.yml`)
 3. Site URL: `https://jenovatech1.github.io/launchable-quotes/`
 4. Graduated: `https://jenovatech1.github.io/launchable-quotes/graduated`
+5. Token detail: `https://jenovatech1.github.io/launchable-quotes/token/<mint>`
 
 The workflow sets `VITE_BASE=/launchable-quotes/` so asset paths match the project site. Build also emits `404.html` (copy of `index.html`) so deep links work on Pages.
 
@@ -95,10 +100,11 @@ The workflow sets `VITE_BASE=/launchable-quotes/` so asset paths match the proje
 
 ```
 src/
-  api/stonkfun.ts              # public API client
+  api/stonkfun.ts              # public API client + chart pair resolve
   pages/LaunchableQuotesPage.tsx
   pages/GraduatedTokensPage.tsx
-  components/                  # shell, rows, mismatch callout
+  pages/TokenDetailPage.tsx
+  components/                  # shell, rows, chart, mismatch callout
   types/
   lib/format.ts
 ```
