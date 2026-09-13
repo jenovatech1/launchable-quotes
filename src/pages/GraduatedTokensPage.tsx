@@ -14,6 +14,7 @@ const config = {
   rawApiUrl:
     'https://www.stonkfun.xyz/api/public/v1/tokens?status=graduated&sort=newest&pageSize=24',
   paginationLabel: 'Graduated tokens pages',
+  sortSummary: 'newest first',
 }
 
 export function GraduatedTokensPage() {

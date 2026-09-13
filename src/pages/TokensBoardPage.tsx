@@ -24,6 +24,8 @@ export type TokensBoardConfig = {
   emptyLabel: string
   rawApiUrl: string
   paginationLabel: string
+  /** Shown in the status line after the filter summary. */
+  sortSummary: string
 }
 
 function matchesPairQuery(pair: QuotePair, q: string): boolean {
@@ -261,7 +263,7 @@ export function TokensBoardPage({ config }: Props) {
           {state.status === 'ok' ? (
             <>
               Showing <strong>{tokens.length}</strong> of {pagination?.total.toLocaleString()} ·{' '}
-              {filterSummary} · newest first
+              {filterSummary} · {config.sortSummary}
               {state.fetchedAt ? (
                 <span className="refreshed"> · loaded {state.fetchedAt.toLocaleTimeString()}</span>
               ) : null}

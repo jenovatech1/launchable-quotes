@@ -7,7 +7,7 @@ Just-graduated and newly created StonkFun token boards (newest first), with quot
 ## Features
 
 - Front page (`/`) = graduated tokens card board
-- `/new` = not-yet-graduated tokens with **graduation progress** (% done + % left) from the API
+- `/new` = not-yet-graduated tokens sorted by **closest to graduate** (progress %), with progress bar from the API
 - Mobile-friendly 1 / 2 / 3 column cards (image, symbol, mcap, volume, quote badge, graduated time)
 - Quote / pair filter + category pills + pagination
 - Card click opens the StonkFun token page (new tab)
@@ -49,7 +49,7 @@ Base: `https://www.stonkfun.xyz/api/public/v1` (prefer **www** — bare host can
 | Item | Value |
 |------|--------|
 | Graduated tokens | `GET /tokens?status=graduated&sort=newest&page=1&pageSize=24` |
-| New (bonding) tokens | `GET /tokens?status=new&sort=newest&page=1&pageSize=24` (includes `graduationProgress` 0–1) |
+| New (bonding) tokens | `GET /tokens?status=new&sort=volume|newest` (board merges scans + client-sorts by `graduationProgress` desc; API has no progress sort) |
 | Quote pairs (filters) | `GET /pairs` |
 | Quote filter | `quoteMint=<mint>` and/or `category=xstock` (etc.) |
 | Token search | `q=<name\|symbol\|mint>` |

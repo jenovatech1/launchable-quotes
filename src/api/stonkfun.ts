@@ -16,9 +16,15 @@ export type TokensQuery = {
   quoteMint?: string
   category?: string
   q?: string
+  /** API sort. Graduated default: newest. New tokens use client progress sort. */
+  sort?: 'newest' | 'volume' | 'marketCap'
 }
 
 export type TokenListStatus = 'graduated' | 'new'
+
+/** Pages scanned per source when building the near-graduation board. */
+const NEW_PROGRESS_SCAN_PAGES = 4
+const NEW_PROGRESS_SCAN_PAGE_SIZE = 100
 
 function isPair(value: unknown): value is QuotePair {
   if (!value || typeof value !== 'object') return false
@@ -170,6 +176,11 @@ export async function fetchAllPairs(
   return { pairs, generatedAt: extractGeneratedAt(json) }
 }
 
+function progressOf(token: GraduatedToken): number {
+  const value = token.graduationProgress
+  return value != null && Number.isFinite(value) ? value : 0
+}
+
 async function fetchTokensByStatus(
   tokenStatus: TokenListStatus,
   query: TokensQuery = {},
@@ -180,7 +191,7 @@ async function fetchTokensByStatus(
 
   const params = new URLSearchParams({
     status: tokenStatus,
-    sort: 'newest',
+    sort: query.sort ?? 'newest',
     page: String(page),
     pageSize: String(pageSize),
   })
@@ -211,16 +222,72 @@ async function fetchTokensByStatus(
   }
 }
 
+/**
+ * Public API has no graduationProgress sort. Scan volume + newest windows,
+ * merge/dedupe, sort by progress desc, then paginate client-side.
+ */
+async function fetchNewTokensByProgress(
+  query: TokensQuery = {},
+  signal?: AbortSignal,
+): Promise<GraduatedTokensResult> {
+  const page = Math.max(1, query.page ?? 1)
+  const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 25))
+  const base = {
+    quoteMint: query.quoteMint,
+    category: query.category,
+    q: query.q,
+    pageSize: NEW_PROGRESS_SCAN_PAGE_SIZE,
+  }
+
+  const scans = await Promise.all(
+    (['volume', 'newest'] as const).flatMap((sort) =>
+      Array.from({ length: NEW_PROGRESS_SCAN_PAGES }, (_, i) =>
+        fetchTokensByStatus('new', { ...base, sort, page: i + 1 }, signal),
+      ),
+    ),
+  )
+
+  const byMint = new Map<string, GraduatedToken>()
+  for (const result of scans) {
+    for (const token of result.tokens) {
+      const prev = byMint.get(token.mint)
+      if (!prev || progressOf(token) > progressOf(prev)) byMint.set(token.mint, token)
+    }
+  }
+
+  const ranked = [...byMint.values()].sort((a, b) => {
+    const diff = progressOf(b) - progressOf(a)
+    if (diff !== 0) return diff
+    return (b.market?.marketCapUsd ?? 0) - (a.market?.marketCapUsd ?? 0)
+  })
+
+  const total = ranked.length
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const start = (safePage - 1) * pageSize
+
+  return {
+    tokens: ranked.slice(start, start + pageSize),
+    pagination: {
+      page: safePage,
+      pageSize,
+      total,
+      totalPages,
+    },
+    generatedAt: scans.find((s) => s.generatedAt)?.generatedAt ?? null,
+  }
+}
+
 export async function fetchGraduatedTokens(
   query: TokensQuery = {},
   signal?: AbortSignal,
 ): Promise<GraduatedTokensResult> {
-  return fetchTokensByStatus('graduated', query, signal)
+  return fetchTokensByStatus('graduated', { ...query, sort: query.sort ?? 'newest' }, signal)
 }
 
 export async function fetchNewTokens(
   query: TokensQuery = {},
   signal?: AbortSignal,
 ): Promise<GraduatedTokensResult> {
-  return fetchTokensByStatus('new', query, signal)
+  return fetchNewTokensByProgress(query, signal)
 }
