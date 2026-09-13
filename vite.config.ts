@@ -1,9 +1,23 @@
+import { copyFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
+
+/** GitHub Pages serves 404.html for unknown paths — copy index for SPA deep links. */
+function spaFallback404(): Plugin {
+  return {
+    name: 'spa-fallback-404',
+    closeBundle() {
+      const index = resolve(__dirname, 'dist/index.html')
+      const fallback = resolve(__dirname, 'dist/404.html')
+      copyFileSync(index, fallback)
+    },
+  }
+}
 
 // Set VITE_BASE=/launchable-quotes/ for GitHub Pages project sites.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), spaFallback404()],
   base: process.env.VITE_BASE || '/',
   preview: {
     // Allow Cloudflare quick tunnels / reverse proxies during demos

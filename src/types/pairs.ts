@@ -7,7 +7,7 @@ export type QuotePair = {
   category: string
   categoryLabel: string
   tokenProgram?: string
-  launchable: boolean
+  launchable?: boolean
   symbolAmbiguous?: boolean
   launchLabReady?: boolean
 }

@@ -16,9 +16,12 @@ export function SiteShell() {
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
               Launchable
             </NavLink>
-            <span className="nav-link muted" title="Coming later in this repo">
-              Custom Pairs Radar
-            </span>
+            <NavLink
+              to="/graduated"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
+              Graduated
+            </NavLink>
           </nav>
         </div>
       </header>
@@ -28,7 +31,7 @@ export function SiteShell() {
       <footer className="footer">
         <p>
           Unofficial free tool. Data from{' '}
-          <a href="https://www.stonkfun.xyz/api/public/v1/pairs?launchable=true" target="_blank" rel="noreferrer">
+          <a href="https://www.stonkfun.xyz/api/public/v1" target="_blank" rel="noreferrer">
             StonkFun public API
           </a>
           . Not affiliated with StonkFun.

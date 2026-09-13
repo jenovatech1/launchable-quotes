@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { SiteShell } from './components/SiteShell'
+import { GraduatedTokensPage } from './pages/GraduatedTokensPage'
 import { LaunchableQuotesPage } from './pages/LaunchableQuotesPage'
 
 export default function App() {
@@ -7,6 +8,7 @@ export default function App() {
     <Routes>
       <Route element={<SiteShell />}>
         <Route index element={<LaunchableQuotesPage />} />
+        <Route path="graduated" element={<GraduatedTokensPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
