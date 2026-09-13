@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { dexScreenerUrl, logoSrc, raydiumSwapUrl, tokenPageUrl } from '../api/stonkfun'
 import { formatRelativeTime, formatUsd, shortMint } from '../lib/format'
 import type { GraduatedToken } from '../types/tokens'
@@ -8,14 +9,33 @@ type Props = {
 }
 
 export function GraduatedTokenRow({ token, index }: Props) {
+  const navigate = useNavigate()
   const src = logoSrc(token.imageUrl)
   const quoteLabel = token.quote.categoryLabel || token.quote.category
   const stonkUrl = tokenPageUrl(token.mint)
   const dexUrl = dexScreenerUrl(token.mint)
   const rayUrl = raydiumSwapUrl(token.mint, token.quote.mint)
+  const detailPath = `/token/${token.mint}`
+
+  function openDetail() {
+    navigate(detailPath, { state: { token, from: 'graduated' as const } })
+  }
 
   return (
-    <article className="token-row" style={{ animationDelay: `${Math.min(index, 24) * 18}ms` }}>
+    <article
+      className="token-row is-clickable"
+      style={{ animationDelay: `${Math.min(index, 24) * 18}ms` }}
+      onClick={openDetail}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          openDetail()
+        }
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={`Open ${token.symbol} details`}
+    >
       <div className="quote-identity">
         <div className="quote-logo" aria-hidden="true">
           {src ? (
@@ -65,7 +85,7 @@ export function GraduatedTokenRow({ token, index }: Props) {
             {formatRelativeTime(token.graduatedAt)}
           </time>
         </div>
-        <div className="token-links">
+        <div className="token-links" onClick={(e) => e.stopPropagation()}>
           <a href={stonkUrl} target="_blank" rel="noreferrer">
             StonkFun
           </a>
@@ -76,7 +96,7 @@ export function GraduatedTokenRow({ token, index }: Props) {
             Raydium
           </a>
         </div>
-        <div className="quote-mint">
+        <div className="quote-mint" onClick={(e) => e.stopPropagation()}>
           <span className="mint-label">mint</span>
           <code title={token.mint}>{shortMint(token.mint)}</code>
           <button

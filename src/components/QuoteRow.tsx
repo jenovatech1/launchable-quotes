@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom'
 import { logoSrc } from '../api/stonkfun'
+import { shortMint } from '../lib/format'
 import type { QuotePair } from '../types/pairs'
 
 type Props = {
@@ -6,16 +8,29 @@ type Props = {
   index: number
 }
 
-function shortMint(mint: string): string {
-  if (mint.length <= 12) return mint
-  return `${mint.slice(0, 4)}…${mint.slice(-4)}`
-}
-
 export function QuoteRow({ pair, index }: Props) {
+  const navigate = useNavigate()
   const src = logoSrc(pair.logoUrl)
 
+  function openDetail() {
+    navigate(`/token/${pair.mint}`, { state: { pair, from: 'launchable' as const } })
+  }
+
   return (
-    <article className="quote-row" style={{ animationDelay: `${Math.min(index, 24) * 18}ms` }}>
+    <article
+      className="quote-row is-clickable"
+      style={{ animationDelay: `${Math.min(index, 24) * 18}ms` }}
+      onClick={openDetail}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          openDetail()
+        }
+      }}
+      role="link"
+      tabIndex={0}
+      aria-label={`Open ${pair.symbol} details`}
+    >
       <div className="quote-identity">
         <div className="quote-logo" aria-hidden="true">
           {src ? (
@@ -47,7 +62,7 @@ export function QuoteRow({ pair, index }: Props) {
         {pair.symbolAmbiguous ? <span className="badge warn">ambiguous</span> : null}
       </div>
 
-      <div className="quote-mint">
+      <div className="quote-mint" onClick={(e) => e.stopPropagation()}>
         <span className="mint-label">mint</span>
         <code title={pair.mint}>{shortMint(pair.mint)}</code>
         <button

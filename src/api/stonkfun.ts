@@ -123,8 +123,29 @@ export function tokenPageUrl(mint: string): string {
   return `${STONKFUN_ORIGIN}/token/${mint}`
 }
 
-export function dexScreenerUrl(mint: string): string {
-  return `https://dexscreener.com/solana/${mint}`
+export function dexScreenerUrl(mintOrPair: string): string {
+  return `https://dexscreener.com/solana/${mintOrPair}`
+}
+
+export function geckoTerminalPoolUrl(pairAddress: string): string {
+  return `https://www.geckoterminal.com/solana/pools/${pairAddress}`
+}
+
+export function geckoTerminalEmbedUrl(pairAddress: string, tokenMint?: string | null): string {
+  const params = new URLSearchParams({
+    embed: '1',
+    info: '0',
+    swaps: '0',
+    light_chart: '1',
+    chart_type: 'price',
+    resolution: '15m',
+  })
+  if (tokenMint) params.set('token_address', tokenMint)
+  return `${geckoTerminalPoolUrl(pairAddress)}?${params.toString()}`
+}
+
+export function dexScreenerEmbedUrl(pairOrMint: string): string {
+  return `${dexScreenerUrl(pairOrMint)}?embed=1&theme=light&trades=0&info=0&chartLeftToolbar=0`
 }
 
 export function raydiumSwapUrl(tokenMint: string, quoteMint?: string | null): string {
@@ -133,6 +154,91 @@ export function raydiumSwapUrl(tokenMint: string, quoteMint?: string | null): st
     outputMint: tokenMint,
   })
   return `https://raydium.io/swap/?${params.toString()}`
+}
+
+export type ChartTarget = {
+  pairAddress: string
+  embedUrl: string
+  externalUrl: string
+  provider: 'geckoterminal' | 'dexscreener'
+  priceChange24h?: number | null
+}
+
+type DexScreenerPair = {
+  chainId?: string
+  pairAddress?: string
+  url?: string
+  dexId?: string
+  liquidity?: { usd?: number | null } | null
+  priceChange?: { h24?: number | null } | null
+}
+
+function pickBestDexPair(pairs: DexScreenerPair[]): DexScreenerPair | null {
+  const solana = pairs.filter((p) => p.chainId === 'solana' && typeof p.pairAddress === 'string')
+  solana.sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))
+  return solana[0] ?? null
+}
+
+/** Resolve a chartable Raydium/DEX pair for a StonkFun mint (launchpad `pool` is often not the live chart). */
+export async function resolveChartTarget(
+  mint: string,
+  pool?: string | null,
+  signal?: AbortSignal,
+): Promise<ChartTarget | null> {
+  try {
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal,
+    })
+    if (res.ok) {
+      const json = (await res.json()) as { pairs?: DexScreenerPair[] }
+      const best = pickBestDexPair(Array.isArray(json.pairs) ? json.pairs : [])
+      if (best?.pairAddress) {
+        return {
+          pairAddress: best.pairAddress,
+          embedUrl: geckoTerminalEmbedUrl(best.pairAddress, mint),
+          externalUrl: best.url || dexScreenerUrl(best.pairAddress),
+          provider: 'geckoterminal',
+          priceChange24h: best.priceChange?.h24 ?? null,
+        }
+      }
+    }
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') throw err
+  }
+
+  if (pool) {
+    let pairAddress = pool
+    try {
+      const res = await fetch(
+        `https://api.geckoterminal.com/api/v2/networks/solana/pools/${encodeURIComponent(pool)}`,
+        { method: 'GET', headers: { Accept: 'application/json' }, signal },
+      )
+      if (res.ok) {
+        const json = (await res.json()) as {
+          data?: {
+            attributes?: {
+              launchpad_details?: { migrated_destination_pool_address?: string | null } | null
+            } | null
+          } | null
+        }
+        const migrated = json.data?.attributes?.launchpad_details?.migrated_destination_pool_address
+        if (typeof migrated === 'string' && migrated.length > 0) pairAddress = migrated
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') throw err
+    }
+
+    return {
+      pairAddress,
+      embedUrl: geckoTerminalEmbedUrl(pairAddress, mint),
+      externalUrl: geckoTerminalPoolUrl(pairAddress),
+      provider: 'geckoterminal',
+    }
+  }
+
+  return null
 }
 
 async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
@@ -228,4 +334,24 @@ export async function fetchGraduatedTokens(
     pagination,
     generatedAt: extractGeneratedAt(json),
   }
+}
+
+/** Look up a single token by mint via public search (exact mint match). */
+export async function fetchTokenByMint(
+  mint: string,
+  signal?: AbortSignal,
+): Promise<{ token: GraduatedToken | null; generatedAt: string | null }> {
+  const trimmed = mint.trim()
+  if (!trimmed) return { token: null, generatedAt: null }
+
+  const params = new URLSearchParams({
+    q: trimmed,
+    page: '1',
+    pageSize: '10',
+  })
+
+  const json = await fetchJson(`${API_BASE}/tokens?${params.toString()}`, signal)
+  const tokens = extractTokens(json)
+  const exact = tokens.find((t) => t.mint === trimmed) ?? null
+  return { token: exact, generatedAt: extractGeneratedAt(json) }
 }
