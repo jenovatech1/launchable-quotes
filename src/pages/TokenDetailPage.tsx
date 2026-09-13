@@ -24,7 +24,7 @@ import type { GraduatedToken } from '../types/tokens'
 type LocationState = {
   token?: GraduatedToken
   pair?: QuotePair
-  from?: 'graduated' | 'launchable'
+  from?: 'graduated'
 }
 
 type DetailState =
@@ -46,8 +46,8 @@ export function TokenDetailPage() {
   const seedToken =
     navState?.token && navState.token.mint === mint ? navState.token : null
   const seedPair = navState?.pair && navState.pair.mint === mint ? navState.pair : null
-  const backTo = navState?.from === 'launchable' ? '/' : '/graduated'
-  const backLabel = navState?.from === 'launchable' ? 'Launchable' : 'Graduated'
+  const backTo = '/'
+  const backLabel = 'Graduated'
 
   const [state, setState] = useState<DetailState>(() =>
     seedToken ? { status: 'ok', token: seedToken } : { status: 'loading' },
@@ -208,9 +208,7 @@ export function TokenDetailPage() {
                     ? 'Graduated'
                     : token?.status
                       ? token.status
-                      : pair
-                        ? 'Launchable quote'
-                        : 'Token'}
+                      : 'Token'}
                 </p>
                 <h1>{displaySymbol}</h1>
                 <p className="detail-name">{displayName}</p>
@@ -229,7 +227,6 @@ export function TokenDetailPage() {
                 <span className="badge category">{pair.categoryLabel || pair.category}</span>
               ) : null}
               {token?.launchpad ? <span className="badge ready">{token.launchpad}</span> : null}
-              {pair?.launchable ? <span className="badge live">launchable</span> : null}
             </div>
 
             <div className="detail-mint">
@@ -244,7 +241,7 @@ export function TokenDetailPage() {
           {state.status === 'missing' ? (
             <p className="detail-note">
               No StonkFun token record for this mint
-              {pair ? ' — showing launchable quote details and a public chart when available.' : '.'}
+              {pair ? ' — showing quote details and a public chart when available.' : '.'}
             </p>
           ) : null}
 

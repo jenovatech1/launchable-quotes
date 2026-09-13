@@ -1,19 +1,16 @@
-# Launchable Quotes Live
+# Graduated · StonkFun board
 
-Free tools for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenovatech1**.
+Unofficial free tool for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenovatech1**.
 
-1. **Launchable Quotes** (`/`) — live launchable quote pairs from the public API, and a callout for the UI↔API mismatch (launch screen can claim no xStocks while the API already returns them).
-2. **Graduated Tokens** (`/graduated`) — just-graduated list sorted by `graduatedAt` (newest first), with quote/pair filters and pagination. StonkFun’s native UI has Newest/mcap/volume but no Graduated tab.
-3. **Token Detail** (`/token/:mint`) — name, mint, quote badge, market stats, links, and a free GeckoTerminal price chart (pair resolved via DexScreener / pool fallback).
+Just-graduated tokens board (newest first), with quote/pair filters, a dense card grid, and token detail pages with a free GeckoTerminal chart.
 
-## Features (MVP)
+## Features
 
-- Mobile-first pages (phone and desktop)
+- Front page (`/`) = graduated tokens card board
+- Mobile-friendly 1 / 2 / 3 column cards (image, symbol, mcap, volume, quote badge, graduated time)
+- Quote / pair filter + category pills + pagination
+- Token detail (`/token/:mint`) with market stats and price chart
 - Live fetch from StonkFun public API (no API key)
-- Launchable list: symbol, name, mint, category, launchable / lab-ready / ambiguous badges
-- Graduated list: token info, quote badge, mcap/vol, graduated time, StonkFun / Dex / Raydium links
-- Row click opens token detail with chart (Graduated + Launchable)
-- Search and category/quote filters; graduated page paginates (does not dump 1800+ rows)
 - Clear empty/error states — never invents fake data
 - No auth, wallet, websockets, sniper, alerts, history, or portfolio
 
@@ -21,13 +18,13 @@ Free tools for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenov
 
 | Path | Page |
 |------|------|
-| `/` | Launchable Quotes Live |
-| `/graduated` | Just graduated tokens |
+| `/` | Graduated tokens board |
 | `/token/:mint` | Token detail + price chart |
+| `/graduated` | Redirects to `/` (legacy) |
 
-On GitHub Pages the app is served under `/launchable-quotes/`, so live URLs look like:
+On GitHub Pages the app is served under `/launchable-quotes/` (repo path kept for now), so live URLs look like:
 
-- `https://jenovatech1.github.io/launchable-quotes/graduated`
+- `https://jenovatech1.github.io/launchable-quotes/`
 - `https://jenovatech1.github.io/launchable-quotes/token/<mint>`
 
 ## Local development
@@ -50,8 +47,8 @@ Base: `https://www.stonkfun.xyz/api/public/v1` (prefer **www** — bare host can
 
 | Item | Value |
 |------|--------|
-| Launchable pairs | `GET /pairs?launchable=true` |
-| Graduated tokens | `GET /tokens?status=graduated&sort=newest&page=1&pageSize=25` |
+| Graduated tokens | `GET /tokens?status=graduated&sort=newest&page=1&pageSize=24` |
+| Quote pairs (filters) | `GET /pairs` |
 | Quote filter | `quoteMint=<mint>` and/or `category=xstock` (etc.) |
 | Token search | `q=<name\|symbol\|mint>` |
 | Auth | None |
@@ -60,39 +57,30 @@ Base: `https://www.stonkfun.xyz/api/public/v1` (prefer **www** — bare host can
 ### Quirks observed
 
 - Prefer **`www.stonkfun.xyz`** — bare `stonkfun.xyz` may 308-redirect or hang.
-- Responses are wrapped (`data.pairs` / `data.tokens` + `data.pagination`), not bare arrays.
-- `launchable=true` still returns many categories (`custom`, `backpack`, `xstock`, …), not only xStocks.
-- Some pairs have `launchLabReady: false` while still `launchable: true`.
+- Responses are wrapped (`data.tokens` / `data.pairs` + `data.pagination`), not bare arrays.
 - `logoUrl` / `imageUrl` may be site-relative; this app prefixes `https://www.stonkfun.xyz`.
 - Graduated default sort on the API without `sort=newest` is marketCap; this app always requests `sort=newest`.
-- Rate limit headers are exposed (`X-RateLimit-*`). Launchable page refreshes ~30s; graduated loads on filter/page change.
 - If the API is down or the shape changes, the UI shows a clear failure — it never invents fake rows.
 
 ## Deploy
 
-### Option A — Vercel (recommended, one click)
+### Option A — Vercel
 
-1. Go to [vercel.com/new](https://vercel.com/new)
-2. Import **`jenovatech1/launchable-quotes`**
-3. Framework preset: **Vite** (defaults are fine: `npm run build`, output `dist`)
-4. Deploy → you get a public URL like `https://launchable-quotes.vercel.app`
+1. Import **`jenovatech1/launchable-quotes`**
+2. Framework preset: **Vite**
+3. Deploy
 
 `vercel.json` is already in the repo for SPA routing.
 
 ### Option B — Cloudflare Pages
 
-1. Cloudflare Dashboard → Workers & Pages → Create → Connect to Git
-2. Select this repo
-3. Build command: `npm run build` · Output directory: `dist`
-4. Deploy
+Build command: `npm run build` · Output directory: `dist`
 
 ### Option C — GitHub Pages
 
 1. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**
 2. Push to `main` (workflow: `.github/workflows/deploy-pages.yml`)
 3. Site URL: `https://jenovatech1.github.io/launchable-quotes/`
-4. Graduated: `https://jenovatech1.github.io/launchable-quotes/graduated`
-5. Token detail: `https://jenovatech1.github.io/launchable-quotes/token/<mint>`
 
 The workflow sets `VITE_BASE=/launchable-quotes/` so asset paths match the project site. Build also emits `404.html` (copy of `index.html`) so deep links work on Pages.
 
@@ -101,10 +89,9 @@ The workflow sets `VITE_BASE=/launchable-quotes/` so asset paths match the proje
 ```
 src/
   api/stonkfun.ts              # public API client + chart pair resolve
-  pages/LaunchableQuotesPage.tsx
   pages/GraduatedTokensPage.tsx
   pages/TokenDetailPage.tsx
-  components/                  # shell, rows, chart, mismatch callout
+  components/                  # shell, token cards, chart
   types/
   lib/format.ts
 ```

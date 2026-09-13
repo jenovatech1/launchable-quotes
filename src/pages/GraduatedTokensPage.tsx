@@ -1,10 +1,10 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { fetchAllPairs, fetchGraduatedTokens } from '../api/stonkfun'
-import { GraduatedTokenRow } from '../components/GraduatedTokenRow'
+import { GraduatedTokenCard } from '../components/GraduatedTokenCard'
 import type { QuotePair } from '../types/pairs'
 import type { GraduatedFetchState } from '../types/tokens'
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 24
 
 type QuoteFilter =
   | { kind: 'all' }
@@ -144,17 +144,19 @@ export function GraduatedTokensPage() {
         : 'all quotes'
 
   return (
-    <div className="page">
-      <section className="hero">
-        <p className="live-pill">
-          <span className="live-dot" aria-hidden="true" />
-          Just graduated
-        </p>
-        <h1>Graduated Tokens</h1>
-        <p className="lede">
-          Newest StonkFun graduations first — filter by quote mint, symbol, or pair category. Native UI
-          has no Graduated tab; this page uses the public API.
-        </p>
+    <div className="page board-page">
+      <section className="board-hero">
+        <div className="board-hero-copy">
+          <p className="live-pill">
+            <span className="live-dot" aria-hidden="true" />
+            Just graduated
+          </p>
+          <h1>Graduated</h1>
+          <p className="lede">
+            Newest StonkFun graduations first — filter by quote pair, browse the card board, open any
+            token for a price chart.
+          </p>
+        </div>
       </section>
 
       <section className="toolbar graduated-toolbar" aria-label="Filter graduated tokens">
@@ -162,7 +164,7 @@ export function GraduatedTokensPage() {
           <span className="sr-only">Search tokens</span>
           <input
             type="search"
-            placeholder="Search token name, symbol, or mint…"
+            placeholder="Search name, symbol, or mint…"
             value={tokenQuery}
             onChange={(e) => {
               setTokenQuery(e.target.value)
@@ -171,25 +173,6 @@ export function GraduatedTokensPage() {
             autoComplete="off"
             spellCheck={false}
           />
-        </label>
-
-        <label className="category-filter">
-          <span className="sr-only">Quote category</span>
-          <select
-            value={filter.kind === 'category' ? filter.category : filter.kind === 'all' ? 'all' : ''}
-            onChange={(e) => selectCategory(e.target.value)}
-            disabled={filter.kind === 'quote'}
-          >
-            <option value="all">All quote categories</option>
-            {categories.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label} ({c.count} quotes)
-              </option>
-            ))}
-            {filter.kind === 'quote' ? (
-              <option value="">Quote locked: {filter.symbol}</option>
-            ) : null}
-          </select>
         </label>
 
         <div className="quote-picker">
@@ -230,11 +213,38 @@ export function GraduatedTokensPage() {
           {pairsError ? <p className="filter-hint">Quote list unavailable: {pairsError}</p> : null}
         </div>
 
+        <div className="category-pills" role="tablist" aria-label="Quote categories">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filter.kind === 'all'}
+            className={filter.kind === 'all' ? 'pill active' : 'pill'}
+            onClick={selectAll}
+          >
+            All
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              role="tab"
+              aria-selected={filter.kind === 'category' && filter.category === c.key}
+              className={
+                filter.kind === 'category' && filter.category === c.key ? 'pill active' : 'pill'
+              }
+              onClick={() => selectCategory(c.key)}
+              disabled={filter.kind === 'quote'}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
         <div className="toolbar-status" aria-live="polite">
           {state.status === 'ok' ? (
             <>
               Showing <strong>{tokens.length}</strong> of {pagination?.total.toLocaleString()} ·{' '}
-              {filterSummary} · sorted by graduatedAt
+              {filterSummary} · newest first
               {state.fetchedAt ? (
                 <span className="refreshed"> · loaded {state.fetchedAt.toLocaleTimeString()}</span>
               ) : null}
@@ -266,9 +276,9 @@ export function GraduatedTokensPage() {
       ) : null}
 
       {state.status === 'loading' ? (
-        <div className="skeleton-list" aria-hidden="true">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="skeleton-row" />
+        <div className="token-grid skeleton-grid" aria-hidden="true">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div key={i} className="skeleton-card" />
           ))}
         </div>
       ) : null}
@@ -278,10 +288,10 @@ export function GraduatedTokensPage() {
       ) : null}
 
       {state.status === 'ok' && tokens.length > 0 ? (
-        <div className="quote-list" role="list">
+        <div className="token-grid" role="list">
           {tokens.map((token, index) => (
             <div key={token.mint} role="listitem">
-              <GraduatedTokenRow token={token} index={index} />
+              <GraduatedTokenCard token={token} index={index} />
             </div>
           ))}
         </div>

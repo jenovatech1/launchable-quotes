@@ -8,7 +8,6 @@ import type {
 
 export const STONKFUN_ORIGIN = 'https://www.stonkfun.xyz'
 export const API_BASE = `${STONKFUN_ORIGIN}/api/public/v1`
-export const LAUNCHABLE_PAIRS_URL = `${API_BASE}/pairs?launchable=true`
 export const ALL_PAIRS_URL = `${API_BASE}/pairs`
 
 export type GraduatedTokensQuery = {
@@ -253,27 +252,6 @@ async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
   }
 
   return res.json()
-}
-
-export async function fetchLaunchablePairs(
-  signal?: AbortSignal,
-): Promise<{ pairs: QuotePair[]; generatedAt: string | null }> {
-  const json = await fetchJson(LAUNCHABLE_PAIRS_URL, signal)
-  const pairs = extractPairs(json).filter((p) => p.launchable === true)
-
-  if (pairs.length === 0) {
-    // Distinguish empty-but-valid vs unparseable
-    const looksLikeEnvelope =
-      !!json &&
-      typeof json === 'object' &&
-      ('data' in (json as object) || 'pairs' in (json as object) || 'meta' in (json as object))
-
-    if (!looksLikeEnvelope) {
-      throw new Error('Unexpected API response shape — no launchable pairs found.')
-    }
-  }
-
-  return { pairs, generatedAt: extractGeneratedAt(json) }
 }
 
 export async function fetchAllPairs(
