@@ -154,7 +154,7 @@ export function GraduatedTokensPage() {
           <h1>Graduated</h1>
           <p className="lede">
             Newest StonkFun graduations first — filter by quote pair, browse the card board, open any
-            token for a price chart.
+            token on StonkFun.
           </p>
         </div>
       </section>

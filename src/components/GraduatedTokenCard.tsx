@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import { dexScreenerUrl, logoSrc, raydiumSwapUrl, tokenPageUrl } from '../api/stonkfun'
 import { formatPercent, formatRelativeTime, formatUsd } from '../lib/format'
 import type { GraduatedToken } from '../types/tokens'
@@ -9,14 +8,12 @@ type Props = {
 }
 
 export function GraduatedTokenCard({ token, index }: Props) {
-  const navigate = useNavigate()
   const src = logoSrc(token.imageUrl)
   const quoteSrc = logoSrc(token.quote.logoUrl)
   const quoteLabel = token.quote.categoryLabel || token.quote.category
   const stonkUrl = tokenPageUrl(token.mint)
   const dexUrl = dexScreenerUrl(token.mint)
   const rayUrl = raydiumSwapUrl(token.mint, token.quote.mint)
-  const detailPath = `/token/${token.mint}`
   const priceChange = token.market?.priceChange24h
   const changeClass =
     priceChange == null
@@ -27,24 +24,24 @@ export function GraduatedTokenCard({ token, index }: Props) {
           ? 'change-down'
           : undefined
 
-  function openDetail() {
-    navigate(detailPath, { state: { token, from: 'graduated' as const } })
+  function openOnStonkFun() {
+    window.open(stonkUrl, '_blank', 'noopener,noreferrer')
   }
 
   return (
     <article
       className="token-card is-clickable"
       style={{ animationDelay: `${Math.min(index, 24) * 28}ms` }}
-      onClick={openDetail}
+      onClick={openOnStonkFun}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          openDetail()
+          openOnStonkFun()
         }
       }}
       role="link"
       tabIndex={0}
-      aria-label={`Open ${token.symbol} details`}
+      aria-label={`Open ${token.symbol} on StonkFun`}
     >
       <div className="token-card-watermark" aria-hidden="true">
         {quoteSrc ? (
@@ -160,7 +157,11 @@ export function GraduatedTokenCard({ token, index }: Props) {
           </span>
           <span className={changeClass}>{formatPercent(priceChange)}</span>
         </div>
-        <time className="token-card-graduated" dateTime={token.graduatedAt ?? undefined} title={token.graduatedAt ?? undefined}>
+        <time
+          className="token-card-graduated"
+          dateTime={token.graduatedAt ?? undefined}
+          title={token.graduatedAt ?? undefined}
+        >
           {formatRelativeTime(token.graduatedAt)}
         </time>
       </div>

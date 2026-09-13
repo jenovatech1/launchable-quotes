@@ -1,12 +1,21 @@
 import { NavLink, Outlet } from 'react-router-dom'
 
+const BRAND_LOGO_URL = 'https://jenovatech1.github.io/logo.png'
+
 export function SiteShell() {
   return (
     <div className="shell">
       <header className="topbar">
         <div className="topbar-inner">
           <NavLink to="/" className="brand" end>
-            <span className="brand-mark" aria-hidden="true" />
+            <img
+              className="brand-logo"
+              src={BRAND_LOGO_URL}
+              alt=""
+              width={34}
+              height={34}
+              decoding="async"
+            />
             <span className="brand-text">
               <span className="brand-name">Graduated</span>
               <span className="brand-sub">StonkFun board · @jenovatech</span>

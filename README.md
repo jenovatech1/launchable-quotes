@@ -2,30 +2,29 @@
 
 Unofficial free tool for [StonkFun](https://www.stonkfun.xyz) by **@jenovatech** / **jenovatech1**.
 
-Just-graduated tokens board (newest first), with quote/pair filters, a dense card grid, and token detail pages with a free GeckoTerminal chart.
+Just-graduated tokens board (newest first), with quote/pair filters and a dense StonkFun-style card grid. Clicking a card opens the official StonkFun token page.
 
 ## Features
 
 - Front page (`/`) = graduated tokens card board
 - Mobile-friendly 1 / 2 / 3 column cards (image, symbol, mcap, volume, quote badge, graduated time)
 - Quote / pair filter + category pills + pagination
-- Token detail (`/token/:mint`) with market stats and price chart
+- Card click opens the StonkFun token page (new tab)
 - Live fetch from StonkFun public API (no API key)
 - Clear empty/error states — never invents fake data
-- No auth, wallet, websockets, sniper, alerts, history, or portfolio
+- No auth, wallet, websockets, sniper, alerts, history, portfolio, or in-app token detail
 
 ## Routes
 
 | Path | Page |
 |------|------|
 | `/` | Graduated tokens board |
-| `/token/:mint` | Token detail + price chart |
 | `/graduated` | Redirects to `/` (legacy) |
+| `/token/:mint` | Redirects to StonkFun token page (legacy) |
 
-On GitHub Pages the app is served under `/launchable-quotes/` (repo path kept for now), so live URLs look like:
+On GitHub Pages the app is served under `/launchable-quotes/` (repo path kept for now):
 
 - `https://jenovatech1.github.io/launchable-quotes/`
-- `https://jenovatech1.github.io/launchable-quotes/token/<mint>`
 
 ## Local development
 
@@ -88,10 +87,9 @@ The workflow sets `VITE_BASE=/launchable-quotes/` so asset paths match the proje
 
 ```
 src/
-  api/stonkfun.ts              # public API client + chart pair resolve
+  api/stonkfun.ts              # public API client
   pages/GraduatedTokensPage.tsx
-  pages/TokenDetailPage.tsx
-  components/                  # shell, token cards, chart
+  components/                  # shell, token cards
   types/
   lib/format.ts
 ```
