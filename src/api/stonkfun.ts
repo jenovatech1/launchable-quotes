@@ -10,13 +10,15 @@ export const STONKFUN_ORIGIN = 'https://www.stonkfun.xyz'
 export const API_BASE = `${STONKFUN_ORIGIN}/api/public/v1`
 export const ALL_PAIRS_URL = `${API_BASE}/pairs`
 
-export type GraduatedTokensQuery = {
+export type TokensQuery = {
   page?: number
   pageSize?: number
   quoteMint?: string
   category?: string
   q?: string
 }
+
+export type TokenListStatus = 'graduated' | 'new'
 
 function isPair(value: unknown): value is QuotePair {
   if (!value || typeof value !== 'object') return false
@@ -168,15 +170,16 @@ export async function fetchAllPairs(
   return { pairs, generatedAt: extractGeneratedAt(json) }
 }
 
-export async function fetchGraduatedTokens(
-  query: GraduatedTokensQuery = {},
+async function fetchTokensByStatus(
+  tokenStatus: TokenListStatus,
+  query: TokensQuery = {},
   signal?: AbortSignal,
 ): Promise<GraduatedTokensResult> {
   const page = Math.max(1, query.page ?? 1)
   const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 25))
 
   const params = new URLSearchParams({
-    status: 'graduated',
+    status: tokenStatus,
     sort: 'newest',
     page: String(page),
     pageSize: String(pageSize),
@@ -197,7 +200,7 @@ export async function fetchGraduatedTokens(
       ('data' in (json as object) || 'tokens' in (json as object) || 'meta' in (json as object))
 
     if (!looksLikeEnvelope) {
-      throw new Error('Unexpected API response shape — no graduated tokens found.')
+      throw new Error(`Unexpected API response shape — no ${tokenStatus} tokens found.`)
     }
   }
 
@@ -208,4 +211,16 @@ export async function fetchGraduatedTokens(
   }
 }
 
-/** Look up a single token by mint via public search (exact mint match). */
+export async function fetchGraduatedTokens(
+  query: TokensQuery = {},
+  signal?: AbortSignal,
+): Promise<GraduatedTokensResult> {
+  return fetchTokensByStatus('graduated', query, signal)
+}
+
+export async function fetchNewTokens(
+  query: TokensQuery = {},
+  signal?: AbortSignal,
+): Promise<GraduatedTokensResult> {
+  return fetchTokensByStatus('new', query, signal)
+}

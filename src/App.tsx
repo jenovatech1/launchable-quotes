@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { tokenPageUrl } from './api/stonkfun'
 import { SiteShell } from './components/SiteShell'
 import { GraduatedTokensPage } from './pages/GraduatedTokensPage'
+import { NewTokensPage } from './pages/NewTokensPage'
 
 /** Legacy deep links: send old /token/:mint URLs straight to StonkFun. */
 function RedirectTokenToStonkFun() {
@@ -25,6 +26,7 @@ export default function App() {
     <Routes>
       <Route element={<SiteShell />}>
         <Route index element={<GraduatedTokensPage />} />
+        <Route path="new" element={<NewTokensPage />} />
         <Route path="graduated" element={<Navigate to="/" replace />} />
         <Route path="token/:mint" element={<RedirectTokenToStonkFun />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -29,6 +29,7 @@ export type GraduatedToken = {
   links?: Record<string, string | undefined> | null
   market?: TokenMarket | null
   status: string
+  graduationProgress?: number | null
   graduatedAt?: string | null
   createdAt?: string | null
 }

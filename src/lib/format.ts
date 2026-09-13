@@ -29,6 +29,23 @@ export function formatPercent(value: number | null | undefined): string {
   return `${sign}${value.toFixed(2)}%`
 }
 
+export function graduationProgressParts(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return null
+  const clamped = Math.min(1, Math.max(0, value))
+  const donePct = clamped * 100
+  const remainingPct = (1 - clamped) * 100
+  return { clamped, donePct, remainingPct }
+}
+
+export function formatGraduationPercent(value: number | null | undefined): string {
+  const parts = graduationProgressParts(value)
+  if (!parts) return '—'
+  const { donePct } = parts
+  if (donePct > 0 && donePct < 0.01) return '<0.01%'
+  if (donePct >= 99.995) return '100%'
+  return `${donePct.toFixed(donePct >= 10 ? 1 : 2)}%`
+}
+
 export function formatRelativeTime(iso: string | null | undefined, now = Date.now()): string {
   if (!iso) return '—'
   const then = Date.parse(iso)

@@ -23,7 +23,13 @@ export function SiteShell() {
           </NavLink>
           <nav className="nav" aria-label="Primary">
             <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
-              Home
+              Graduated
+            </NavLink>
+            <NavLink
+              to="/new"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
+              New
             </NavLink>
             <a
               className="nav-link external"

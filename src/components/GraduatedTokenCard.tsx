@@ -1,13 +1,20 @@
 import { dexScreenerUrl, logoSrc, raydiumSwapUrl, tokenPageUrl } from '../api/stonkfun'
-import { formatPercent, formatRelativeTime, formatUsd } from '../lib/format'
+import {
+  formatGraduationPercent,
+  formatPercent,
+  formatRelativeTime,
+  formatUsd,
+  graduationProgressParts,
+} from '../lib/format'
 import type { GraduatedToken } from '../types/tokens'
 
 type Props = {
   token: GraduatedToken
   index: number
+  variant?: 'graduated' | 'new'
 }
 
-export function GraduatedTokenCard({ token, index }: Props) {
+export function GraduatedTokenCard({ token, index, variant = 'graduated' }: Props) {
   const src = logoSrc(token.imageUrl)
   const quoteSrc = logoSrc(token.quote.logoUrl)
   const quoteLabel = token.quote.categoryLabel || token.quote.category
@@ -23,6 +30,9 @@ export function GraduatedTokenCard({ token, index }: Props) {
         : priceChange < 0
           ? 'change-down'
           : undefined
+  const progress = variant === 'new' ? graduationProgressParts(token.graduationProgress) : null
+  const timeIso = variant === 'new' ? token.createdAt : token.graduatedAt
+  const timeLabel = variant === 'new' ? 'Created' : undefined
 
   function openOnStonkFun() {
     window.open(stonkUrl, '_blank', 'noopener,noreferrer')
@@ -150,6 +160,24 @@ export function GraduatedTokenCard({ token, index }: Props) {
         <span className="badge category">{quoteLabel}</span>
       </div>
 
+      {progress ? (
+        <div className="token-card-progress" aria-label="Graduation progress">
+          <div className="progress-labels">
+            <span className="progress-done">
+              Graduation <strong>{formatGraduationPercent(token.graduationProgress)}</strong>
+            </span>
+            <span className="progress-remaining">
+              {progress.remainingPct >= 99.995
+                ? 'Done'
+                : `${progress.remainingPct >= 10 ? progress.remainingPct.toFixed(1) : progress.remainingPct.toFixed(2)}% left`}
+            </span>
+          </div>
+          <div className="progress-track" aria-hidden="true">
+            <div className="progress-fill" style={{ width: `${progress.clamped * 100}%` }} />
+          </div>
+        </div>
+      ) : null}
+
       <div className="token-card-footer">
         <div className="token-card-stats">
           <span>
@@ -159,10 +187,11 @@ export function GraduatedTokenCard({ token, index }: Props) {
         </div>
         <time
           className="token-card-graduated"
-          dateTime={token.graduatedAt ?? undefined}
-          title={token.graduatedAt ?? undefined}
+          dateTime={timeIso ?? undefined}
+          title={timeIso ? `${timeLabel ? `${timeLabel} · ` : ''}${timeIso}` : undefined}
         >
-          {formatRelativeTime(token.graduatedAt)}
+          {timeLabel ? `${timeLabel} ` : null}
+          {formatRelativeTime(timeIso)}
         </time>
       </div>
     </article>
